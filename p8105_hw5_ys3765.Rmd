@@ -1,0 +1,103 @@
+---
+title: "p8105_hw5_ys3765"
+author: "Yixiao Sun"
+date: "2023-11-08"
+output: github_document
+---
+
+# Problem 2:
+
+```{r}
+data_list<-list.files(path = "~/Desktop/P8105_ Data Science/p8105_hw5_ys3765/data", pattern = NULL, all.files = FALSE,
+           full.names = FALSE, recursive = FALSE,
+           ignore.case = FALSE, include.dirs = FALSE, no.. = FALSE)
+
+       dir(path = "~/Desktop/P8105_ Data Science/p8105_hw5_ys3765/data/", pattern = NULL, all.files = FALSE,
+           full.names = FALSE, recursive = FALSE,
+           ignore.case = FALSE, include.dirs = FALSE, no.. = FALSE)
+
+list.dirs(path = "~/Desktop/P8105_ Data Science/p8105_hw5_ys3765/data/", full.names = TRUE, recursive = TRUE)
+
+```
+
+```{r}
+library(tidyverse)
+
+file_names <- list.files(path = "~/Desktop/P8105_ Data Science/p8105_hw5_ys3765/data/", pattern = "\\.csv$", full.names = FALSE)
+print(file_names)
+
+file_dir <- list.files(path = "~/Desktop/P8105_ Data Science/p8105_hw5_ys3765/data/", pattern = "\\.csv$", full.names = TRUE)
+
+data_list <- file_dir %>%
+  set_names(nm = file_names) %>%
+  map(read_csv)
+
+data_list <- map2(data_list, names(data_list), ~mutate(.x, 
+                                                        subject_id = str_extract(.y,"(?<=_)[^_]+(?=\\.csv)"),
+                                                        arm = str_extract(.y, "[a-z]")))
+
+combined_data <- bind_rows(data_list, .id = "source")
+
+```
+
+
+```{r}
+tidy_data <- combined_data %>%
+  pivot_longer(cols = starts_with("week"), names_to = "week", values_to = "observation") %>%
+  mutate(week = readr::parse_number(week))
+
+ggplot(tidy_data, aes(x = week, y = observation, group = subject_id, color = arm)) +
+  geom_line() +
+  labs(title = "Spaghetti Plot of Observations Over Time by Subject",
+       x = "Week",
+       y = "Observation") +
+  theme_minimal()
+```
+# Problem 3
+```{r}
+library(tidyverse)
+library(broom)
+
+n <- 30
+sigma <- 5
+mu_values <- 0:6
+alpha <- 0.05
+num_simulations <- 5000
+
+simulate_t_test <- function(mu) {
+  data <- rnorm(n, mean = mu, sd = sigma)
+  t_test_result <- t.test(data, mu = 0)
+  tidy(t_test_result)
+}
+
+results <- map_df(mu_values, function(mu) {
+  t_tests <- replicate(num_simulations, simulate_t_test(mu), simplify = FALSE) %>%
+    bind_rows() %>%
+    mutate(true_mu = mu)
+  t_tests
+}, .id = "mu")
+
+power_estimates <- results %>%
+  group_by(mu) %>%
+  summarize(power = mean(p.value < alpha),
+            mean_estimate = mean(estimate),
+            mean_estimate_rejected = mean(estimate[p.value < alpha]))
+
+power_plot <- ggplot(power_estimates, aes(x = as.numeric(mu), y = power)) +
+  geom_point() +
+  geom_line() +
+  labs(title = "Power vs. True Mean", x = "True Mean (μ)", y = "Power")
+
+mean_estimate_plot <- ggplot(power_estimates, aes(x = as.numeric(mu))) +
+  geom_point(aes(y = mean_estimate), color = "blue") +
+  geom_line(aes(y = mean_estimate), color = "blue") +
+  geom_point(aes(y = mean_estimate_rejected), color = "red") +
+  geom_line(aes(y = mean_estimate_rejected), color = "red") +
+  labs(title = "Average Estimate of μ̂ vs. True Mean", x = "True Mean (μ)", y = "Average Estimate of μ̂")
+
+power_plot
+mean_estimate_plot
+
+```
+ 
+ 
