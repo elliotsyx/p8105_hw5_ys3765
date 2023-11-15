@@ -6,7 +6,7 @@ output: github_document
 ---
 
 # Problem 2:
-```{r}
+```{r message=FALSE}
 library(tidyverse)
 
 file_names <- list.files(path = "~/Desktop/P8105_ Data Science/p8105_hw5_ys3765/data/", 
@@ -22,16 +22,15 @@ data_list <- file_dir %>%
   set_names(nm = file_names) %>%
   map(read_csv)
 
-data_list <- map2(data_list, 
+data_list <- purrr::map2(data_list, 
                   names(data_list), 
                   ~mutate(.x, 
                           subject_id = str_extract(.y,"(?<=_)[^_]+(?=\\.csv)"),
-                          arm = str_extract(.y, "[a-z]")))
+                          arm = str_extract(.y, "[a-z]+")))
 
 combined_data <- bind_rows(data_list, .id = "source")
 
 ```
-
 
 ```{r}
 tidy_data <- combined_data %>%
@@ -52,6 +51,11 @@ ggplot(tidy_data, aes(x = week,
   theme_minimal()
 
 ```
+
+For the spaghetti plot, for the control group of the data over 8 weeks, the observation values vary a lot unside down but without any clear trend for the researchers to see. On the other hand, for the experiment group, their observation values still vary a lot but mostly showing a upward trend, which means that the experimental group is showing a positive effect.
+
+
+
 # Problem 3
 ```{r}
 library(tidyverse)
@@ -93,6 +97,16 @@ power_plot <- ggplot(power_estimates,
        x = "True Mean (μ)", 
        y = "Power")
 
+
+power_plot
+
+```
+ 
+The plot shows a clear positive association between effect size and power: as the true mean increases, the power of the test also increases. This indicates that larger effect sizes make it easier to detect a true effect, thus increasing the power of the statistical test.
+ 
+ 
+ 
+```{r}
 mean_estimate_plot <- ggplot(power_estimates, 
                              aes(x = as.numeric(mu))) +
   geom_point(aes(y = mean_estimate), 
@@ -106,9 +120,8 @@ mean_estimate_plot <- ggplot(power_estimates,
   labs(title = "Average Estimate of μ̂ vs. True Mean",
        x = "True Mean (μ)", y = "Average Estimate of μ̂")
 
-power_plot
 mean_estimate_plot
-
 ```
  
+The red line is consistently above the blue line, suggesting that the average estimate of mu is slightly higher than the true mean when the null hypothesis is rejected. So it can't be equal. And the reason for this might due to type 1 error inflation, which is that 
  
