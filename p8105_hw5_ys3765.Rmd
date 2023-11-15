@@ -123,5 +123,4 @@ mean_estimate_plot <- ggplot(power_estimates,
 mean_estimate_plot
 ```
  
-The red line is consistently above the blue line, suggesting that the average estimate of mu is slightly higher than the true mean when the null hypothesis is rejected. So it can't be equal. And the reason for this might due to type 1 error inflation, which is that 
- 
+The red line is consistently above the blue line, suggesting that the average estimate of mu is slightly higher than the true mean when the null hypothesis is rejected. So it can't be equal. The reason for this is probably because when the null hypothsis got rejected, the sample estimation is usually significantly different from the value of the null hypothsis value. So they can't be equal.
